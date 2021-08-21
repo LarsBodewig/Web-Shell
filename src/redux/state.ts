@@ -1,5 +1,8 @@
-export type State = typeof state;
+import { initialLocation } from "./location";
 
-export const state = {
+export const initialState = {
+  location: initialLocation,
   text: "Hello World!",
 };
+
+export type State = typeof initialState;

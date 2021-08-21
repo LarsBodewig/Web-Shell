@@ -1,21 +1,27 @@
 import {
-  configureStore,
+  AnyAction,
+  applyMiddleware,
+  compose,
   createAction,
   createReducer,
+  createStore,
+  MiddlewareAPI,
   PayloadAction,
   PayloadActionCreator,
 } from "@reduxjs/toolkit";
 import { CaseReducers } from "@reduxjs/toolkit/dist/createReducer";
-import { state as initialState, State } from "./state";
+import { Dispatch } from "react";
+import { navigationMiddleware } from "./navigation";
+import { initialState, State } from "./state";
 
 export type Store = typeof store;
 export type Reducer<Payload = void> = (
   state: State,
   action: PayloadAction<Payload, string>
-) => State;
+) => State | void;
 
 const reducerBuilder: CaseReducers<State, any> = {};
-export function reduce<Payload = void>(
+export function addReducer<Payload = void>(
   name: string,
   reducer: Reducer<Payload>
 ): PayloadActionCreator<Payload, string> {
@@ -23,6 +29,20 @@ export function reduce<Payload = void>(
   reducerBuilder[name] = reducer;
   return action;
 }
-export const store = configureStore({
-  reducer: createReducer(initialState, reducerBuilder),
-});
+
+export function createMiddleware(
+  middleware: (state: State, action: AnyAction) => any
+) {
+  return (store: MiddlewareAPI) =>
+    (dispatch: Dispatch<AnyAction>) =>
+    (action: AnyAction) => {
+      dispatch(action);
+      middleware(store.getState(), action);
+    };
+}
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+export const store = createStore(
+  createReducer(initialState, reducerBuilder),
+  composeEnhancers(applyMiddleware(navigationMiddleware))
+);
