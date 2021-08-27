@@ -8,7 +8,10 @@ export default function App() {
   return (
     <div>
       <p onClick={hello}>{state.text}</p>
-      <p onClick={login}>login</p>
+      <p style={{ height: "100vh" }} onClick={login}>
+        login
+      </p>
+      <p id="login">logged in</p>
     </div>
   );
 }

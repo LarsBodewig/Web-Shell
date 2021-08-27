@@ -11,8 +11,9 @@ import {
 } from "@reduxjs/toolkit";
 import { CaseReducers } from "@reduxjs/toolkit/dist/createReducer";
 import { Dispatch } from "react";
-import { navigationMiddleware } from "./navigation";
-import { sideEffectEnhancer } from "./sideEffect";
+import { actionEffectEnhancer } from "./actionEffect";
+import { composeEffectEnhancers, subscribeWithEffectEnhancer } from "./effect";
+import { navigationEffectEnhancer, navigationMiddleware } from "./navigation";
 import { initialState, State } from "./state";
 
 export type Store = typeof store;
@@ -45,5 +46,12 @@ export function createMiddleware(
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 export const store = createStore(
   createReducer(initialState, reducerBuilder),
-  composeEnhancers(sideEffectEnhancer, applyMiddleware(navigationMiddleware))
+  composeEnhancers(
+    composeEffectEnhancers(
+      subscribeWithEffectEnhancer,
+      actionEffectEnhancer,
+      navigationEffectEnhancer
+    ),
+    applyMiddleware(navigationMiddleware)
+  )
 );
