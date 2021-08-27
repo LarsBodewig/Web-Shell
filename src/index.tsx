@@ -11,14 +11,15 @@ declare global {
   }
 }
 
-function render() {
+function render(callback?: () => void) {
   ReactDOM.render(
     <React.StrictMode>
       <App />
     </React.StrictMode>,
-    document.getElementById("root")
+    document.getElementById("root"),
+    callback
   );
 }
 
-store.subscribe(render);
+store.subscribeWithEffect(render);
 render();

@@ -14,7 +14,9 @@ export default function App() {
 }
 
 function hello() {
-  store.dispatch(HELLO_SHOWN("no hello"));
+  store.dispatchWithEffect(HELLO_SHOWN("no hello"), () => {
+    console.log("effect");
+  });
 }
 
 function login() {
