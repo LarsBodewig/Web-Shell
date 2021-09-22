@@ -36,14 +36,19 @@ export const navigationEffectEnhancer: DependentStoreEnhancer<SubscribeWithEffec
     ) => {
       const store = createStore(reducer, preloadedState);
       store.setEffect("navigation", () => {
-        if (newHash) {
-          const anchor = document.getElementById(newHash);
-          if (anchor) {
-            anchor.scrollIntoView();
-            anchor.focus();
-            newHash = undefined;
-          }
-        }
+        scrollToAnchor(newHash);
       });
       return store;
     };
+
+export function scrollToAnchor(hash?: string): void {
+  hash = hash ?? window.location.hash;
+  if (hash) {
+    const anchor = document.getElementById(hash);
+    if (anchor) {
+      anchor.scrollIntoView();
+      anchor.focus();
+      newHash = undefined;
+    }
+  }
+}
