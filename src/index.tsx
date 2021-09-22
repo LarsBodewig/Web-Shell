@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./app/App";
 import "./index.css";
+import { scrollToAnchor } from "./redux/navigation";
 import { store } from "./redux/store";
 
 declare global {
@@ -22,4 +23,4 @@ function render(callback?: () => void) {
 }
 
 store.subscribeWithEffect(render);
-render();
+render(scrollToAnchor);
