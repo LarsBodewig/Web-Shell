@@ -1,6 +1,22 @@
 import { waitFor } from "./processor";
 
-export abstract class Stream<T> {
+interface Stream {
+  isClosed(): boolean;
+  close(): void;
+}
+
+export interface InputStream<T> extends Stream {
+  read(): Promise<T>;
+  asOutputStream(): OutputStream<T>;
+  canRead(): boolean;
+}
+
+export interface OutputStream<T> extends Stream {
+  write(value: T): void;
+  asInputStream(): InputStream<T>;
+}
+
+class StreamImpl<T> implements InputStream<T>, OutputStream<T> {
   public buffer: T[];
   public closed: boolean;
 
@@ -12,10 +28,10 @@ export abstract class Stream<T> {
   public close(): void {
     this.closed = true;
   }
-}
 
-export class InputStream<T> extends Stream<T> {
-  static void = new InputStream<any>();
+  public isClosed(): boolean {
+    return this.closed;
+  }
 
   public read(): Promise<T> {
     let value = this.buffer.shift();
@@ -27,14 +43,74 @@ export class InputStream<T> extends Stream<T> {
     }
     return Promise.reject();
   }
-}
 
-export class OutputStream<T> extends Stream<T> {
-  static void = new OutputStream<any>();
+  public canRead(): boolean {
+    return !this.closed || this.buffer.length > 0;
+  }
 
   public write(value: T): void {
     if (!this.closed) {
       this.buffer.push(value);
     }
   }
+
+  public asInputStream(): InputStream<T> {
+    return this as Stream as InputStream<T>;
+  }
+
+  public asOutputStream(): OutputStream<T> {
+    return this as Stream as OutputStream<T>;
+  }
+}
+
+export function newInputStream<T>(): InputStream<T> {
+  return new StreamImpl<T>() as Stream as InputStream<T>;
+}
+
+export function newOutputStream<T>(): OutputStream<T> {
+  return new StreamImpl<T>() as Stream as OutputStream<T>;
+}
+
+export interface InputStreamVoid extends InputStream<any> {}
+
+export interface OutputStreamVoid extends OutputStream<never> {}
+
+class VoidStreamImpl implements InputStreamVoid, OutputStreamVoid {
+  public close(): void {}
+
+  public isClosed(): boolean {
+    return true;
+  }
+
+  public read(): Promise<never> {
+    return Promise.reject();
+  }
+
+  public canRead(): boolean {
+    return false;
+  }
+
+  public write(_value: any): void {}
+
+  public asInputStream(): InputStream<never> {
+    return this as Stream as InputStream<never>;
+  }
+
+  public asOutputStream(): OutputStream<never> {
+    return this as Stream as OutputStream<never>;
+  }
+}
+
+const singletonInputStreamVoid =
+  new VoidStreamImpl() as Stream as InputStreamVoid;
+
+export function newInputStreamVoid(): InputStreamVoid {
+  return singletonInputStreamVoid;
+}
+
+const singletonOutputStreamVoid =
+  new VoidStreamImpl() as Stream as OutputStreamVoid;
+
+export function newOutputStreamVoid(): OutputStreamVoid {
+  return singletonOutputStreamVoid;
 }
