@@ -1,0 +1,12 @@
+.shell {
+  background-color: black;
+  color: white;
+  font-family: "consolas", monospace;
+  overflow-y: scroll;
+}
+
+.fullsize {
+  width: calc(100% - 1rem);
+  height: calc(100% - 0.5rem);
+  padding: 0.25rem 0.5rem;
+}
