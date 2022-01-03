@@ -16,19 +16,13 @@ import { composeEffectEnhancers, subscribeWithEffectEnhancer } from "./effect";
 import { navigationEffectEnhancer, navigationMiddleware } from "./navigation";
 import { initialState, State } from "./state";
 import { produce } from "immer";
+import { nextId } from "../util/nextId";
 
 export type Store = typeof store;
 export type Reducer<Payload = void> = (
   state: State,
   action: PayloadAction<Payload, string>
 ) => State | void;
-
-let nextFreeId = 0;
-function nextId(): string {
-  const id = nextFreeId;
-  nextFreeId++;
-  return id.toString();
-}
 
 const reducerBuilder: CaseReducers<State, any> = {};
 export function addReducer<Payload = void>(

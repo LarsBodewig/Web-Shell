@@ -1,0 +1,52 @@
+.prompt-user {
+  color: green;
+}
+
+.prompt-env {
+  color: purple;
+}
+
+.prompt-path {
+  color: gold;
+}
+
+.prompt-first-line {
+  margin: 0;
+}
+
+.prompt-second-line {
+  display: flex;
+  justify-content: stretch;
+  margin: 0;
+}
+
+.prompt-char {
+  flex-grow: 0;
+}
+
+.prompt-input {
+  background-color: transparent;
+  color: white;
+  border: none;
+  resize: none;
+  flex-grow: 1;
+  height: 1rem;
+  margin-left: 0.1rem;
+  font-size: 1rem;
+  overflow: hidden;
+  /* test
+  border: 1px solid red; */
+}
+
+.prompt-input:focus {
+  outline: none;
+}
+
+.prompt ::selection {
+  background-color: white;
+  color: black;
+}
+
+.prompt-result {
+  margin: 0 0 1rem;
+}
