@@ -5,6 +5,7 @@ import { INPUT } from "../action/input";
 import { TYPE } from "../action/type";
 import { State } from "../redux/state";
 import { store } from "../redux/store";
+import { focusShellInput, scrollShellInputIntoView } from "../shell/Shell";
 import { valueToUndefined } from "../util/filter";
 import { KeyCode } from "../util/onKey";
 import { calcInputHeight, isHeightMore } from "./inputHeight";
@@ -13,9 +14,11 @@ import "./Prompt.css";
 export default function Prompt({
   state,
   history,
+  shellId,
 }: {
   state: State;
   history: boolean;
+  shellId: string;
 }) {
   const user = (
     <span className="prompt-user">
@@ -26,9 +29,10 @@ export default function Prompt({
   const pathName = state.location.pathname ?? "/";
   const path = <span className="prompt-path">{pathName}</span>;
   const readOnly = valueToUndefined(history, false); // false does not work
-  console.log(history + " " + readOnly);
+  const inputId = history ? undefined : shellId;
   const input = (
     <textarea
+      id={inputId}
       className="prompt-input"
       readOnly={readOnly}
       value={state.prompt.input}
@@ -55,7 +59,7 @@ export default function Prompt({
 
 function onInput(event: FormEvent<HTMLTextAreaElement>) {
   const textarea = event.currentTarget;
-  store.dispatch(TYPE(textarea.value));
+  store.dispatchWithEffect(TYPE(textarea.value), scrollShellInputIntoView);
   if (isHeightMore(textarea.scrollHeight)) {
     textarea.style.height = calcInputHeight(textarea.scrollHeight);
   } else {
@@ -72,13 +76,13 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
     case KeyCode.Return:
       event.preventDefault();
       textarea.readOnly = true;
-      store.dispatch(INPUT(textarea.value));
+      store.dispatchWithEffect(INPUT(textarea.value), focusShellInput);
       break;
     case KeyCode.ArrowUp:
-      store.dispatch(ARROW_UP());
+      store.dispatchWithEffect(ARROW_UP(), scrollShellInputIntoView);
       break;
     case KeyCode.ArrowDown:
-      store.dispatch(ARROW_DOWN());
+      store.dispatchWithEffect(ARROW_DOWN(), scrollShellInputIntoView);
       break;
   }
 }
