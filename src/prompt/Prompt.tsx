@@ -1,10 +1,12 @@
 import { FormEvent, KeyboardEvent } from "react";
+import { ARROW_DOWN } from "../action/arrowDown";
+import { ARROW_UP } from "../action/arrowUp";
 import { INPUT } from "../action/input";
 import { TYPE } from "../action/type";
 import { State } from "../redux/state";
 import { store } from "../redux/store";
 import { valueToUndefined } from "../util/filter";
-import { KeyCode, onKey } from "../util/onKey";
+import { KeyCode } from "../util/onKey";
 import { calcInputHeight, isHeightMore } from "./inputHeight";
 import "./Prompt.css";
 
@@ -31,7 +33,7 @@ export default function Prompt({
       readOnly={readOnly}
       value={state.prompt.input}
       onInput={onInput}
-      onKeyDown={onKey(KeyCode.Return, onReturn)}
+      onKeyDown={mapKeys}
     ></textarea>
   );
   const result = state.prompt.result ? (
@@ -64,9 +66,19 @@ function onInput(event: FormEvent<HTMLTextAreaElement>) {
   }
 }
 
-function onReturn(event: KeyboardEvent<HTMLTextAreaElement>) {
-  event.preventDefault();
+function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
   const textarea = event.currentTarget;
-  textarea.readOnly = true;
-  store.dispatch(INPUT(textarea.value));
+  switch (event.keyCode) {
+    case KeyCode.Return:
+      event.preventDefault();
+      textarea.readOnly = true;
+      store.dispatch(INPUT(textarea.value));
+      break;
+    case KeyCode.ArrowUp:
+      store.dispatch(ARROW_UP());
+      break;
+    case KeyCode.ArrowDown:
+      store.dispatch(ARROW_DOWN());
+      break;
+  }
 }
