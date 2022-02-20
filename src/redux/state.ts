@@ -11,6 +11,7 @@ export const initialState = {
   },
   prompt: {
     input: "",
+    currentId: undefined as number | undefined,
     result: undefined as string | undefined,
   },
   prevState: undefined as any,
