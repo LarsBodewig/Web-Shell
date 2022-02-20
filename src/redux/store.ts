@@ -15,6 +15,7 @@ import { actionEffectEnhancer } from "./actionEffect";
 import { composeEffectEnhancers, subscribeWithEffectEnhancer } from "./effect";
 import { navigationEffectEnhancer, navigationMiddleware } from "./navigation";
 import { initialState, State } from "./state";
+import { produce } from "immer";
 
 export type Store = typeof store;
 export type Reducer<Payload = void> = (
@@ -22,13 +23,21 @@ export type Reducer<Payload = void> = (
   action: PayloadAction<Payload, string>
 ) => State | void;
 
+let nextFreeId = 0;
+function nextId(): string {
+  const id = nextFreeId;
+  nextFreeId++;
+  return id.toString();
+}
+
 const reducerBuilder: CaseReducers<State, any> = {};
 export function addReducer<Payload = void>(
-  name: string,
   reducer: Reducer<Payload>
 ): PayloadActionCreator<Payload, string> {
+  const name = nextId();
   const action = createAction<Payload>(name);
-  reducerBuilder[name] = reducer;
+  const producer: Reducer<Payload> = (s, a) => produce(s, (d) => reducer(d, a));
+  reducerBuilder[name] = producer;
   return action;
 }
 

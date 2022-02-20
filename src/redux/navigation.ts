@@ -2,44 +2,46 @@ import {
   Action,
   AnyAction,
   PreloadedState,
-  Reducer,
   StoreEnhancerStoreCreator,
+  Reducer,
 } from "@reduxjs/toolkit";
+import clone from "just-clone";
 import { DependentStoreEnhancer, SubscribeWithEffect } from "./effect";
-import { initialLocation } from "./location";
+import { locEquals, initialLocation, locToUrl } from "./location";
 import { createMiddleware } from "./store";
 
-let previousLocation = initialLocation.clone();
+let previousLocation = clone(initialLocation);
 let newHash: string | undefined = undefined;
 
-export const navigationMiddleware = createMiddleware((state, action) => {
+export const navigationMiddleware = createMiddleware((state) => {
   const { location } = state;
-  if (!previousLocation.equals(location)) {
-    const url = location.toUrl();
+  if (!locEquals(previousLocation, location)) {
+    const url = locToUrl(location);
     newHash =
       location.hash && location.hash !== previousLocation.hash
         ? location.hash
         : undefined;
     window.history.pushState(undefined, "", url);
-    previousLocation = location.clone();
+    previousLocation = clone(location);
   }
 });
 
-export const navigationEffectEnhancer: DependentStoreEnhancer<SubscribeWithEffect> =
-
-    (
-      createStore: StoreEnhancerStoreCreator<SubscribeWithEffect>
-    ): StoreEnhancerStoreCreator<SubscribeWithEffect> =>
-    <S, A extends Action = AnyAction>(
-      reducer: Reducer<S, A>,
-      preloadedState?: PreloadedState<S>
-    ) => {
-      const store = createStore(reducer, preloadedState);
-      store.setEffect("navigation", () => {
-        scrollToAnchor(newHash);
-      });
-      return store;
-    };
+export const navigationEffectEnhancer: DependentStoreEnhancer<
+  SubscribeWithEffect
+> =
+  (
+    createStore: StoreEnhancerStoreCreator<SubscribeWithEffect>
+  ): StoreEnhancerStoreCreator<SubscribeWithEffect> =>
+  <S, A extends Action = AnyAction>(
+    reducer: Reducer<S, A>,
+    preloadedState?: PreloadedState<S>
+  ) => {
+    const store = createStore(reducer, preloadedState);
+    store.setEffect("navigation", () => {
+      scrollToAnchor(newHash);
+    });
+    return store;
+  };
 
 export function scrollToAnchor(hash?: string): void {
   hash = hash ?? window.location.hash;
