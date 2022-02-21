@@ -9,19 +9,12 @@ export default function Shell() {
   return <div className="shell fullsize">{prompt}</div>;
 }
 
-function renderPrompt(state: State, recursion = false): JSX.Element[] {
+function renderPrompt(state: State): JSX.Element[] {
   let history = [];
   if (state.prevState) {
-    history.push(...renderPrompt(state.prevState, true));
+    history.push(...renderPrompt(state.prevState));
   }
-  history.push(
-    <Prompt
-      state={state}
-      history={recursion}
-      shellId={SHELL_ID}
-      key={state.id}
-    />
-  );
+  history.push(<Prompt state={state} shellId={SHELL_ID} key={state.id} />);
   return history;
 }
 

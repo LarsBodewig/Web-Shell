@@ -2,7 +2,11 @@ import { FormEvent, KeyboardEvent } from "react";
 import { ARROW_DOWN } from "../action/arrowDown";
 import { ARROW_UP } from "../action/arrowUp";
 import { INPUT } from "../action/input";
+import { NEXT } from "../action/next";
+import { PRINT } from "../action/print";
 import { TYPE } from "../action/type";
+import { parse } from "../os/parser";
+import { newInputStreamVoid } from "../os/stream";
 import { State } from "../redux/state";
 import { store } from "../redux/store";
 import { focusShellInput, scrollShellInputIntoView } from "../shell/Shell";
@@ -13,11 +17,9 @@ import "./Prompt.css";
 
 export default function Prompt({
   state,
-  history,
   shellId,
 }: {
   state: State;
-  history: boolean;
   shellId: string;
 }) {
   const user = (
@@ -28,8 +30,8 @@ export default function Prompt({
   const env = <span className="prompt-env">WebShell</span>;
   const pathName = state.location.pathname ?? "/";
   const path = <span className="prompt-path">{pathName}</span>;
-  const readOnly = valueToUndefined(history, false); // false does not work
-  const inputId = history ? undefined : shellId;
+  const readOnly = valueToUndefined(state.locked, false); // false does not work
+  const inputId = state.locked ? undefined : shellId;
   const input = (
     <textarea
       id={inputId}
@@ -76,7 +78,8 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
     case KeyCode.Return:
       event.preventDefault();
       textarea.readOnly = true;
-      store.dispatchWithEffect(INPUT(textarea.value), focusShellInput);
+      const input = textarea.textContent ?? "";
+      process(input);
       break;
     case KeyCode.ArrowUp:
       store.dispatchWithEffect(ARROW_UP(), scrollShellInputIntoView);
@@ -85,4 +88,17 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
       store.dispatchWithEffect(ARROW_DOWN(), scrollShellInputIntoView);
       break;
   }
+}
+
+async function process(cmd: string) {
+  store.dispatch(INPUT());
+  const command = parse(cmd);
+  const input = newInputStreamVoid();
+  const processed = await command(input);
+  const output = processed.asInputStream();
+  while (output.canRead()) {
+    const value = await output.read();
+    store.dispatch(PRINT(value));
+  }
+  store.dispatchWithEffect(NEXT(), focusShellInput);
 }
