@@ -40,9 +40,9 @@ export const actionEffectEnhancer: DependentStoreEnhancer<
       action: AnyAction,
       effect: () => void
     ) => {
-      const result = store.dispatch(action as A);
+      // TODO: combine effects for different events
       store.setEffect(ENHANCER_ID, effect);
-      return result;
+      return store.dispatch(action as A);
     };
 
     return {
