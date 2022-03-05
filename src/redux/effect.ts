@@ -8,6 +8,7 @@ import {
   StoreEnhancerStoreCreator,
   Unsubscribe,
 } from "@reduxjs/toolkit";
+import { runAll } from "../util/runAll";
 
 export interface SubscribeWithEffect {
   subscribeWithEffect(listener: (callback: () => void) => void): Unsubscribe;
@@ -26,14 +27,9 @@ export const subscribeWithEffectEnhancer: StoreEnhancer<SubscribeWithEffect> =
     let effects: { [enhancer: string]: () => void } = {};
 
     const subscribeWithEffect = (listener: (callback: () => void) => void) =>
-      store.subscribe(() => {
-        const callback = () => {
-          Object.values(effects).forEach((effect) => effect());
-        };
-        listener(callback);
-      });
+      store.subscribe(() => listener(() => runAll(Object.values(effects))));
 
-    const setEffect = (enhancer: string, effect: () => void) => {
+    const setEffect = (enhancer: string, effect: (() => void) | undefined) => {
       if (effect) {
         effects[enhancer] = effect;
       } else {
