@@ -3,10 +3,15 @@
   color: white;
   font-family: "consolas", monospace;
   overflow-y: scroll;
+  cursor: text;
 }
 
 .fullsize {
   width: calc(100% - 1rem);
   height: calc(100% - 0.5rem);
   padding: 0.25rem 0.5rem;
+}
+
+.prompt:not(:last-child) {
+  margin-bottom: 1rem;
 }
