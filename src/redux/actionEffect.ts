@@ -6,6 +6,7 @@ import {
   Reducer,
   StoreEnhancerStoreCreator,
 } from "@reduxjs/toolkit";
+import { runAll } from "../util/runAll";
 import { DependentStoreEnhancer, SubscribeWithEffect } from "./effect";
 
 interface ActionWithEffect {
@@ -31,17 +32,20 @@ export const actionEffectEnhancer: DependentStoreEnhancer<
     const store = createStore(reducer, preloadedState);
     const ENHANCER_ID = "action";
 
-    const dispatch: Dispatch<A> = <T extends A>(action: T) => {
-      store.setEffect(ENHANCER_ID, undefined);
-      return store.dispatch(action);
-    };
+    const dispatch: Dispatch<A> = <T extends A>(action: T) =>
+      store.dispatch(action);
+
+    let actionEffects: { [action: string]: () => void } = {};
 
     const dispatchWithEffect: DispatchWithEffect = (
       action: AnyAction,
       effect: () => void
     ) => {
-      // TODO: combine effects for different events
-      store.setEffect(ENHANCER_ID, effect);
+      actionEffects[action.type] = effect;
+      store.setEffect(ENHANCER_ID, () => {
+        runAll(Object.values(actionEffects));
+        actionEffects = {};
+      });
       return store.dispatch(action as A);
     };
 
