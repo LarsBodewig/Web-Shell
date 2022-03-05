@@ -6,5 +6,10 @@
     },
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "files.exclude": {
+        ".vscode": true,
+        "build": true,
+        "node_modules": true
     }
 }
