@@ -1,4 +1,4 @@
-import { InputStream, OutputStream } from "./stream";
+import { InputStream, newOutputStream, OutputStream } from "./stream";
 
 export type StreamFunction<I = void, O = void> = (a: I) => Promise<O>;
 
@@ -12,7 +12,8 @@ export abstract class Command<I, A extends Arguments, O> {
   public call(args?: string): StreamFunction<InputStream<I>, OutputStream<O>> {
     return async (input: InputStream<I>) => {
       const parsedArgs = this.parseArgs(args);
-      const outputPromise = this.process(input, parsedArgs);
+      const outputParam = newOutputStream<O>();
+      const outputPromise = this.process(input, parsedArgs, outputParam);
       const output = await outputPromise;
       output.close();
       return output;
@@ -23,7 +24,8 @@ export abstract class Command<I, A extends Arguments, O> {
 
   protected abstract process(
     input: InputStream<I>,
-    args: A
+    args: A,
+    output: OutputStream<O>
   ): Promise<OutputStream<O>>;
 }
 
