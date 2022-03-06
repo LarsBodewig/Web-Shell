@@ -5,7 +5,7 @@ type Args = {
   value: string;
 };
 
-export class Echo extends Command<any, Args, string> {
+export class Echo extends Command<void, Args, string> {
   constructor() {
     super("echo");
   }
