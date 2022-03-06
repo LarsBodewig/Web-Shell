@@ -5,8 +5,6 @@ import { path } from "./path";
 import {
   InputStream,
   InputStreamVoid,
-  newOutputStream,
-  newOutputStreamVoid,
   OutputStream,
   OutputStreamVoid,
 } from "./stream";
@@ -22,9 +20,10 @@ class Start extends Command<InputStreamVoid, {}, OutputStreamVoid> {
 
   protected process(
     _input: InputStreamVoid,
-    _args: {}
+    _args: {},
+    output: OutputStreamVoid
   ): Promise<OutputStreamVoid> {
-    return Promise.resolve(newOutputStreamVoid());
+    return Promise.resolve(output);
   }
 }
 
@@ -39,9 +38,9 @@ class Converter extends Command<InputStream<any>, {}, string> {
 
   protected async process(
     input: InputStream<any>,
-    _args: {}
+    _args: {},
+    output: OutputStream<string>
   ): Promise<OutputStream<string>> {
-    const output = newOutputStream<string>();
     while (input.canRead()) {
       const value = await input.read();
       output.write("" + value);
