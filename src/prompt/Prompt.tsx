@@ -5,8 +5,7 @@ import { INPUT } from "../action/input";
 import { NEXT } from "../action/next";
 import { PRINT } from "../action/print";
 import { TYPE } from "../action/type";
-import { parse } from "../os/parser";
-import { newInputStreamVoid } from "../os/stream";
+import { parse, run } from "../os/parser";
 import { State } from "../redux/state";
 import { store } from "../redux/store";
 import { focusShellInput, scrollShellInputIntoView } from "../shell/Shell";
@@ -42,9 +41,10 @@ export default function Prompt({
       onKeyDown={mapKeys}
     ></textarea>
   );
-  const result = state.prompt.result ? (
-    <p className="prompt-result">{state.prompt.result}</p>
-  ) : undefined;
+  const result =
+    state.prompt.result === undefined ? undefined : (
+      <p className="prompt-result">{state.prompt.result}</p>
+    );
   return (
     <div className="prompt">
       <p className="prompt-first-line">
@@ -93,12 +93,9 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
 async function process(cmd: string) {
   store.dispatch(INPUT());
   const command = parse(cmd);
-  const input = newInputStreamVoid();
-  const processed = await command(input);
-  const output = processed.asInputStream();
-  while (output.canRead()) {
-    const value = await output.read();
-    store.dispatch(PRINT(value));
+  const output = await run(command);
+  while (await output.canRead()) {
+    store.dispatch(PRINT(output.read()));
   }
   store.dispatchWithEffect(NEXT(), focusShellInput);
 }

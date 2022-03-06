@@ -1,10 +1,10 @@
 import { Echo } from "../bin/echo";
-import { isEmpty } from "../util/isEmpty";
-import { Command, pipe, StreamFunction } from "./command";
-import { path } from "./path";
+import { Command, StreamFunction } from "./command";
+import { findInPath } from "./path";
 import {
   InputStream,
   InputStreamVoid,
+  newInputStreamVoid,
   OutputStream,
   OutputStreamVoid,
 } from "./stream";
@@ -41,11 +41,10 @@ class Converter extends Command<InputStream<any>, {}, string> {
     _args: {},
     output: OutputStream<string>
   ): Promise<OutputStream<string>> {
-    while (input.canRead()) {
-      const value = await input.read();
-      output.write("" + value);
+    while (await input.canRead()) {
+      output.write("" + input.read());
     }
-    return output;
+    return Promise.resolve(output);
   }
 }
 
@@ -74,15 +73,32 @@ export function parse(
   }
 }
 
+export function pipe<I, T, O>(
+  funcA: StreamFunction<InputStream<I>, OutputStream<T>>,
+  funcB: StreamFunction<InputStream<T>, OutputStream<O>>
+): StreamFunction<InputStream<I>, OutputStream<O>> {
+  return async (input: InputStream<I>) => {
+    return funcA(input).then((output) => funcB(output.asInputStream()));
+  };
+}
+
+export async function run(
+  command: StreamFunction<InputStreamVoid, OutputStream<string>>
+): Promise<InputStream<string>> {
+  const input = newInputStreamVoid();
+  return command(input)
+    .then((output) => output.asInputStream())
+    .finally(() => input.close());
+}
+
 function splitCommands(input: string) {
-  const splitCommands = input.split("|").filter((cmd) => !isEmpty(cmd));
+  const splitCommands = input
+    .split("|")
+    .map((cmd) => cmd.trim())
+    .filter((cmd) => cmd.length > 0);
   return splitCommands.map((splitCommand) => {
     const cmdName = splitCommand.split(" ")[0].trim();
     const cmdArgs = splitCommand.substring(cmdName.length).trim();
     return { name: cmdName, args: cmdArgs };
   });
-}
-
-function findInPath(name: string): Command<any, any, any> | undefined {
-  return path.find((cmd) => cmd.name === name);
 }

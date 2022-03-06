@@ -6,9 +6,9 @@ interface Stream {
 }
 
 export interface InputStream<T> extends Stream {
-  read(): Promise<T>;
+  read(): T;
   asOutputStream(): OutputStream<T>;
-  canRead(): boolean;
+  canRead(): Promise<boolean>;
 }
 
 export interface OutputStream<T> extends Stream {
@@ -33,19 +33,15 @@ class StreamImpl<T> implements InputStream<T>, OutputStream<T> {
     return this.closed;
   }
 
-  public read(): Promise<T> {
+  public read(): T {
     let value = this.buffer.shift();
-    if (value) return Promise.resolve(value);
-    if (!this.closed) {
-      waitFor(() => this.closed && this.buffer.length > 0);
-      value = this.buffer.shift();
-      if (value) return Promise.resolve(value);
-    }
-    return Promise.reject();
+    if (value === undefined) throw new Error("Buffer is empty");
+    return value;
   }
 
-  public canRead(): boolean {
-    return !this.closed || this.buffer.length > 0;
+  public canRead(): Promise<boolean> {
+    waitFor(() => this.closed || this.buffer.length > 0);
+    return Promise.resolve(this.buffer.length > 0);
   }
 
   public write(value: T): void {
@@ -82,12 +78,12 @@ class VoidStreamImpl implements InputStreamVoid, OutputStreamVoid {
     return true;
   }
 
-  public read(): Promise<never> {
-    return Promise.reject();
+  public read(): never {
+    throw new Error("Buffer is empty");
   }
 
-  public canRead(): boolean {
-    return false;
+  public canRead(): Promise<boolean> {
+    return Promise.resolve(false);
   }
 
   public write(_value: any): void {}
