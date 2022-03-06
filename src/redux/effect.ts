@@ -26,16 +26,19 @@ export const subscribeWithEffectEnhancer: StoreEnhancer<SubscribeWithEffect> =
     const store = createStore(reducer, preloadedState);
     let effects: { [enhancer: string]: () => void } = {};
 
-    const subscribeWithEffect = (listener: (callback: () => void) => void) =>
-      store.subscribe(() => listener(() => runAll(Object.values(effects))));
+    function subscribeWithEffect(listener: (callback: () => void) => void) {
+      return store.subscribe(() =>
+        listener(() => runAll(Object.values(effects)))
+      );
+    }
 
-    const setEffect = (enhancer: string, effect: (() => void) | undefined) => {
+    function setEffect(enhancer: string, effect: (() => void) | undefined) {
       if (effect) {
         effects[enhancer] = effect;
       } else {
         delete effects[enhancer];
       }
-    };
+    }
 
     return {
       ...store,

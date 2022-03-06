@@ -1,8 +1,8 @@
 import { FormEvent, KeyboardEvent } from "react";
 import { ARROW_DOWN } from "../action/arrowDown";
 import { ARROW_UP } from "../action/arrowUp";
-import { INPUT } from "../action/input";
-import { NEXT } from "../action/next";
+import { LOCK_STATE } from "../action/lockState";
+import { PUSH_STATE } from "../action/pushState";
 import { PRINT } from "../action/print";
 import { TYPE } from "../action/type";
 import { parse, run } from "../os/parser";
@@ -91,11 +91,11 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
 }
 
 async function process(cmd: string) {
-  store.dispatch(INPUT());
+  store.dispatch(LOCK_STATE());
   const command = parse(cmd);
   const output = await run(command);
   while (await output.canRead()) {
     store.dispatch(PRINT(output.read()));
   }
-  store.dispatchWithEffect(NEXT(), focusShellInput);
+  store.dispatchWithEffect(PUSH_STATE(), focusShellInput);
 }

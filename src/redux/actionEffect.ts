@@ -1,7 +1,6 @@
 import {
   Action,
   AnyAction,
-  Dispatch,
   PreloadedState,
   Reducer,
   StoreEnhancerStoreCreator,
@@ -32,26 +31,19 @@ export const actionEffectEnhancer: DependentStoreEnhancer<
     const store = createStore(reducer, preloadedState);
     const ENHANCER_ID = "action";
 
-    const dispatch: Dispatch<A> = <T extends A>(action: T) =>
-      store.dispatch(action);
-
     let actionEffects: { [action: string]: () => void } = {};
 
-    const dispatchWithEffect: DispatchWithEffect = (
-      action: AnyAction,
-      effect: () => void
-    ) => {
+    function dispatchWithEffect(action: AnyAction, effect: () => void) {
       actionEffects[action.type] = effect;
       store.setEffect(ENHANCER_ID, () => {
         runAll(Object.values(actionEffects));
         actionEffects = {};
       });
       return store.dispatch(action as A);
-    };
+    }
 
     return {
       ...store,
-      dispatch,
       dispatchWithEffect,
     };
   };

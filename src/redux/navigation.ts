@@ -37,9 +37,7 @@ export const navigationEffectEnhancer: DependentStoreEnhancer<
     preloadedState?: PreloadedState<S>
   ) => {
     const store = createStore(reducer, preloadedState);
-    store.setEffect("navigation", () => {
-      scrollToAnchor(newHash);
-    });
+    store.setEffect("navigation", () => scrollToAnchor(newHash));
     return store;
   };
 
