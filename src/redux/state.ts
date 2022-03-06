@@ -14,7 +14,7 @@ export const initialState = {
     currentId: undefined as number | undefined,
     result: undefined as string | undefined,
   },
-  locked: false,
+  // locked: false,
   prevState: undefined as any,
 };
 

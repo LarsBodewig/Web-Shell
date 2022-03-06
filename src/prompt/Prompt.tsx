@@ -1,9 +1,8 @@
 import { FormEvent, KeyboardEvent } from "react";
 import { ARROW_DOWN } from "../action/arrowDown";
 import { ARROW_UP } from "../action/arrowUp";
-import { LOCK_STATE } from "../action/lockState";
-import { PUSH_STATE } from "../action/pushState";
 import { PRINT } from "../action/print";
+import { PUSH_STATE } from "../action/pushState";
 import { TYPE } from "../action/type";
 import { parse, run } from "../os/parser";
 import { State } from "../redux/state";
@@ -29,8 +28,8 @@ export default function Prompt({
   const env = <span className="prompt-env">WebShell</span>;
   const pathName = state.location.pathname ?? "/";
   const path = <span className="prompt-path">{pathName}</span>;
-  const readOnly = valueToUndefined(state.locked, false); // false does not work
-  const inputId = state.locked ? undefined : shellId;
+  const readOnly = valueToUndefined(store.isLocked(), false); // false does not work
+  const inputId = store.isLocked() ? undefined : shellId;
   const input = (
     <textarea
       id={inputId}
@@ -91,11 +90,12 @@ function mapKeys(event: KeyboardEvent<HTMLTextAreaElement>) {
 }
 
 async function process(cmd: string) {
-  store.dispatch(LOCK_STATE());
+  store.lockState();
   const command = parse(cmd);
   const output = await run(command);
   while (await output.canRead()) {
     store.dispatch(PRINT(output.read()));
   }
   store.dispatchWithEffect(PUSH_STATE(), focusShellInput);
+  store.unlockState();
 }

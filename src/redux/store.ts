@@ -8,6 +8,7 @@ import {
   MiddlewareAPI,
   PayloadAction,
   PayloadActionCreator,
+  StoreEnhancer,
 } from "@reduxjs/toolkit";
 import { CaseReducers } from "@reduxjs/toolkit/dist/createReducer";
 import { Dispatch } from "react";
@@ -17,6 +18,7 @@ import { navigationEffectEnhancer, navigationMiddleware } from "./navigation";
 import { initialState, State } from "./state";
 import { produce } from "immer";
 import { nextId } from "../util/nextId";
+import { lockEnhancer } from "./lock";
 
 export type Store = typeof store;
 export type Reducer<Payload = void> = (
@@ -46,7 +48,6 @@ export function createMiddleware(
     };
 }
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 export const store = createStore(
   createReducer(initialState, reducerBuilder),
   composeEnhancers(
@@ -55,6 +56,17 @@ export const store = createStore(
       actionEffectEnhancer,
       navigationEffectEnhancer
     ),
+    lockEnhancer,
     applyMiddleware(navigationMiddleware)
   )
 );
+
+export function composeEnhancers<A, AS, B, BS, C, CS>(
+  a: StoreEnhancer<A, AS>,
+  b: StoreEnhancer<B, BS>,
+  c: StoreEnhancer<C, CS>
+): StoreEnhancer<{} & A & B & C, {} & AS & BS & CS> {
+  const extensionEnhancer = window.__REDUX_DEVTOOLS_EXTENSION__?.();
+  const f = extensionEnhancer ? [extensionEnhancer, a, b, c] : [a, b, c];
+  return compose(...f.reverse());
+}
