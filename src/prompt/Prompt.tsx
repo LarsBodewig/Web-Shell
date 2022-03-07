@@ -1,9 +1,9 @@
-import { FormEvent, KeyboardEvent } from "react";
+import React, { FormEvent, Fragment, KeyboardEvent } from "react";
 import { ARROW_DOWN } from "../action/arrowDown";
 import { ARROW_UP } from "../action/arrowUp";
 import { LOCK_STATE } from "../action/lockState";
-import { PUSH_STATE } from "../action/pushState";
 import { PRINT } from "../action/print";
+import { PUSH_STATE } from "../action/pushState";
 import { TYPE } from "../action/type";
 import { parse, run } from "../os/parser";
 import { State } from "../redux/state";
@@ -41,10 +41,16 @@ export default function Prompt({
       onKeyDown={mapKeys}
     ></textarea>
   );
-  const result =
-    state.prompt.result === undefined ? undefined : (
-      <p className="prompt-result">{state.prompt.result}</p>
-    );
+  let result = undefined;
+  if (state.prompt.result.length) {
+    const resultLines = state.prompt.result.map((value, index) => (
+      <Fragment key={index}>
+        {value}
+        {index === state.prompt.result.length - 1 ? undefined : <br />}
+      </Fragment>
+    ));
+    result = <p className="prompt-result">{resultLines}</p>;
+  }
   return (
     <div className="prompt">
       <p className="prompt-first-line">

@@ -12,7 +12,7 @@ export const initialState = {
   prompt: {
     input: "",
     currentId: undefined as number | undefined,
-    result: undefined as string | undefined,
+    result: [] as string[],
   },
   locked: false,
   prevState: undefined as any,
