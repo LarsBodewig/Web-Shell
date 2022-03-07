@@ -19,7 +19,7 @@ export class Pwd extends Command<void, {}, string> {
   ): Promise<OutputStream<string>> {
     const state = store.getState();
     const path = locToUrl(state.location);
-    output.write(path);
+    output.write(path || "/");
     return Promise.resolve(output);
   }
 }
