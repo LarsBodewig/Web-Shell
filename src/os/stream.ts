@@ -39,9 +39,10 @@ class StreamImpl<T> implements InputStream<T>, OutputStream<T> {
     return value;
   }
 
-  public canRead(): Promise<boolean> {
-    waitFor(() => this.closed || this.buffer.length > 0);
-    return Promise.resolve(this.buffer.length > 0);
+  public async canRead(): Promise<boolean> {
+    return waitFor(() => this.closed || this.buffer.length > 0).then(
+      () => this.buffer.length > 0
+    );
   }
 
   public write(value: T): void {
