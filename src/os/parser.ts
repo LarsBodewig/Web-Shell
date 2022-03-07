@@ -77,8 +77,9 @@ export function pipe<I, T, O>(
   funcA: StreamFunction<InputStream<I>, OutputStream<T>>,
   funcB: StreamFunction<InputStream<T>, OutputStream<O>>
 ): StreamFunction<InputStream<I>, OutputStream<O>> {
-  return async (input: InputStream<I>) => {
-    return funcA(input).then((output) => funcB(output.asInputStream()));
+  return (input: InputStream<I>) => {
+    const output = funcA(input);
+    return funcB(output.asInputStream());
   };
 }
 
@@ -86,9 +87,8 @@ export async function run(
   command: StreamFunction<InputStreamVoid, OutputStream<string>>
 ): Promise<InputStream<string>> {
   const input = newInputStreamVoid();
-  return command(input)
-    .then((output) => output.asInputStream())
-    .finally(() => input.close());
+  const output = command(input);
+  return output.asInputStream();
 }
 
 function splitCommands(input: string) {
