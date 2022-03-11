@@ -7,6 +7,9 @@
 	bla = branch -la
 	edit = "!git commit --amend -m \"$1\" && git rebase --continue #"
 	continue = "!GIT_EDITOR=true git rebase --continue"
+	autorebase = !git fetch --prune && GIT_EDITOR=true git rebase -i origin/$(git config custom.defaultbranch)
+	selfupdate = !git fetch --prune && git pull
+	amend = !GIT_EDITOR=true git commit --amend
 [custom]
 	defaultbranch = main
 [remote "template"]
